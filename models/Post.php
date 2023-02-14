@@ -11,7 +11,7 @@ class Post
     public $category_id;
     public $title;
     public $body;
-    public $auther;
+    public $author;
     public $created_at;
 
     // the constructor to bind the conn 
@@ -26,7 +26,7 @@ class Post
     public function read()
     {
         // write the query 
-        $query = 'SELECT c.name as category_name, p.id, p.category_id, p.title, p.body, p.auther, p.created_at
+        $query = 'SELECT c.name as category_name, p.id, p.category_id, p.title, p.body, p.author, p.created_at
                 FROM ' . $this->table . 'p 
                 LEFT JOIN 
                  categories c ON p.category_id = c.id
@@ -47,7 +47,7 @@ class Post
     public function read_single()
     {
 
-        $query = 'SELECT c.name as category_name, p.id, p.category_id, p.title, p.auther. p.created_at 
+        $query = 'SELECT c.name as category_name, p.id, p.category_id, p.title, p.author. p.created_at 
               FROM ' . $this->table . 'p 
               LEFT JOIN 
               categories c ON p.category_id = c.id 
@@ -63,7 +63,7 @@ class Post
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         $this->title = $row['title'];
         $this->body = $row['body'];
-        $this->auther = $row['auther'];
+        $this->author = $row['author'];
         $this->category_id = $row['category_id'];
         $this->category_name = $row['category_name'];
     }
@@ -71,35 +71,41 @@ class Post
     // Create a post 
     public function create()
     {
-        $query = 'INSERT INTO ' . $this->table .
-            'SET title = :title, body = :body, auther = :auther, category_id = :category_id';
+     // Create query
+     $query = 'INSERT INTO ' . $this->table . ' SET title = :title, body = :body, author = :author, category_id = :category_id';
 
-        $stmt = $this->conn->prapare($query);
-        // Clean the data
-        $this->title = Tools::cleanData($this->title);
-        $this->body = Tools::cleanData($this->body);
-        $this->auther = Tools::cleanData($this->auther);
-        $this->category_id = Tools::cleanData($this->category_id);
+     // Prepare statement
+     $stmt = $this->conn->prepare($query);
 
-        // Bind the data 
-        $stmt->bindParam(':title', $this->title);
-        $stmt->bindParam(':body', $this->body);
-        $stmt->bindParam(':auther', $this->auther);
-        $stmt->bindParam(':category_id', $this->category_id);
+     // Clean data
+     $this->title = htmlspecialchars(strip_tags($this->title));
+     $this->body = htmlspecialchars(strip_tags($this->body));
+     $this->author = htmlspecialchars(strip_tags($this->author));
+     $this->category_id = htmlspecialchars(strip_tags($this->category_id));
 
-        if ($stmt->execute) {
-            return true;
-        }
+     // Bind data
+     $stmt->bindParam(':title', $this->title);
+     $stmt->bindParam(':body', $this->body);
+     $stmt->bindParam(':author', $this->author);
+     $stmt->bindParam(':category_id', $this->category_id);
 
-        printf("Error: %s.\n", $stmt->Error);
-        return false;
-    }
+     // Execute query
+     if($stmt->execute()) {
+       return true;
+ }
+
+ // Print error if something goes wrong
+ printf("Error: %s.\n", $stmt->error);
+
+ return false;
+}
+
 
     public function update()
     {
 
         $query = 'UPDATE ' . $this->table .
-            'SET title = :title, body = :body, auther = :auther, category_id = :category_id
+            'SET title = :title, body = :body, author = :author, category_id = :category_id
              WHERE id= :id';
 
         $stmt = $this->conn->prepare($query);
@@ -107,7 +113,7 @@ class Post
         // Clean Data 
         $this->title = Tools::cleanData($this->title);
         $this->body = Tools::cleanData($this->body);
-        $this->auther = Tools::cleanData($this->auther);
+        $this->author = Tools::cleanData($this->author);
         $this->category_id = Tools::cleanData($this->category_id);
         $this->id = Tools::cleanData($this->id);
 
@@ -115,7 +121,7 @@ class Post
         // Bind param 
         $stmt->bindParam(':title', $this->title);
         $stmt->bindParam(':body', $this->body);
-        $stmt->bindParam(':auther', $this->auther);
+        $stmt->bindParam(':author', $this->author);
         $stmt->bindParam(':category_id', $this->category_id);
         $stmt->bindParam(':id', $this->id);
 
